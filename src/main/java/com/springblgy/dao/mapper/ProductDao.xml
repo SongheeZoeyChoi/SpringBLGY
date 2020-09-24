@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="com.springblgy.dao.ProductDao">
+	<!-- id = IDao.java에 있는 listDao resultType은 Dto 알려줌 -->
+	<select id="productDetailDao" resultType="com.springblgy.dto.ProductDetailDto">
+		SELECT P.PRDSEQ, P.UPLOADERSEQ, U.NICKNAME, P.TITLE, P.PRICE, P.DATE1, P.DATE2, P.INFO, P.IMAGE1, P.HASH, P.INSERTDATE, P.XAXIS, P.YAXIS, P.VIEW, (SELECT check_like(#{param2}, #{param1})) AS LIKED , CASE WHEN P.UPLOADERSEQ = #{param2} THEN 1 ELSE 0 END AS UPLOADERCHECK
+		FROM PRODUCT P, USERDATA U
+		WHERE P.UPLOADERSEQ = U.USERSEQ AND P.PRDSEQ = #{param1}
+	</select>
+	
+	<select id="productCMTDao" resultType="com.springblgy.dto.ProductCommentDto">
+		SELECT C.CMTSEQ, C.USERSEQ, U.NICKNAME, C.COMMENT, C.INSERTDATE, CASE WHEN C.USERSEQ = #{param2} THEN 1 ELSE 0 END AS USERCHECK FROM USERDATA U, COMMENT C WHERE C.USERSEQ = U.USERSEQ AND C.READFT = 1 AND PRDSEQ = #{param1};
+	</select>
+	
+	<update id="updateViewDao">
+		UPDATE PRODUCT SET VIEW = VIEW + 1 WHERE PRDSEQ = #{param1}
+	</update>
+	
+	<insert id="addComment">
+		INSERT COMMENT (PRDSEQ, USERSEQ, COMMENT, INSERTDATE) VALUES (#{param1}, #{param2}, #{param3}, NOW())
+	</insert>
+	
+	<select id="commentDetail" resultType="com.springblgy.dto.ProductCommentDto">
+		SELECT CMTSEQ, PRDSEQ, COMMENT, INSERTDATE FROM COMMENT WHERE CMTSEQ = #{param1}
+	</select>
+	
+	<update id="commentRevision">
+		UPDATE COMMENT SET COMMENT = #{param2} WHERE CMTSEQ = #{param1}
+	</update>
+	
+	<update id="commentDelete">
+		UPDATE COMMENT SET READFT = 0 WHERE CMTSEQ = #{param1}
+	</update>
+	
+	<update id="productRevision">
+		UPDATE PRODUCT SET TITLE = #{param2}, PRICE = #{param3}, DATE1 = #{param4}, DATE2 = #{param5}, INFO = #{param7}, HASH = #{param6}, IMAGE1 = #{param8}, INSERTDATE = NOW() WHERE PRDSEQ = #{param1}
+	</update>
+	
+	<delete id="productDelete">
+		DELETE FROM PRODUCT WHERE PRDSEQ = #{param1}
+	</delete>
+
+	<insert id="insertBorrowDao">
+		INSERT BORROW (PRDSEQ, USERSEQ, DATE1, DATE2, INSERTDATE) VALUES (#{param1}, #{param2}, #{param3}, #{param4}, NOW())
+	</insert>
+	
+	<select id="borrowListDao" resultType="com.springblgy.dto.BorrowDto">
+		SELECT U.NICKNAME, B.RENTSEQ, B.DATE1, B.DATE2, CASE WHEN B.USERSEQ = #{param2} THEN 1 ELSE 0 END AS USERCHECK FROM USERDATA AS U, BORROW AS B WHERE B.PRDSEQ = #{param1} AND U.USERSEQ = B.USERSEQ;
+	</select>
+	
+	<delete id="deleteBorrowDao">
+		DELETE FROM BORROW WHERE RENTSEQ = #{param1}
+
+	</delete>
+	<select id="borrowChkDao" resultType="int">
+		SELECT COUNT(*) FROM BORROW WHERE (DATE1 BETWEEN #{param2} AND #{param3} OR DATE2 BETWEEN #{param2} and #{param3}) AND PRDSEQ = #{param1}
+	</select>
+
+</mapper>
